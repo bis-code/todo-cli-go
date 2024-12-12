@@ -32,12 +32,14 @@ func main() {
 	updateCompleted := updateCmd.Bool("completed", false, "Update completed task")
 
 	// Delete command flag
-	deleteID := deleteCmd.Int("id", 0, "ID of the todo to delete")
+	deleteID := deleteCmd.Int("id", -1, "ID of the todo to delete")
+	deleteAll := deleteCmd.Bool("all", false, "Deletes all todos")
 
 	// List command flags
 	listFilter := listCmd.String("filter", "", "Filter todos by 'completed' or 'pending'")
 	listSort := listCmd.String("sort", "id", "Sort todos by 'id' or 'title'")
 	listCategory := listCmd.String("category", "all", "Filter todos by category")
+	listTags := listCmd.String("tags", "", "Comma-separated tags to filter by")
 
 	// Search command flag
 	searchQuery := searchCmd.String("query", "", "Search query for todos")
@@ -55,13 +57,20 @@ func main() {
 		addTodo(*addTitle, *addDesc, *addCategory, tags)
 	case "list":
 		listCmd.Parse(os.Args[2:])
-		listTodos(*listFilter, *listSort, *listCategory)
+		tags := strings.Split(*listTags, ",")
+		listTodos(*listFilter, *listSort, *listCategory, tags)
 	case "update":
 		updateCmd.Parse(os.Args[2:])
 		updateTodo(*updateID, *updateTitle, *updateDesc, *updateCompleted)
 	case "delete":
 		deleteCmd.Parse(os.Args[2:])
-		deleteTodo(*deleteID)
+		if *deleteAll {
+			deleteAllTodos()
+		} else if *deleteID == -1 {
+			fmt.Println("Please introduce a todo ID higher or equal with 0.")
+		} else {
+			deleteTodo(*deleteID)
+		}
 	case "search":
 		searchCmd.Parse(os.Args[2:])
 		if *searchQuery == "" {
@@ -136,7 +145,7 @@ func writeTodos(todos []Todo) error {
 	defer writer.Flush()
 
 	// Write the header row
-	writer.Write([]string{"ID", "Title", "Description", "Completed", "Category"})
+	writer.Write([]string{"ID", "Title", "Description", "Completed", "Category", "Tags"})
 	for _, todo := range todos {
 		completed := strconv.FormatBool(todo.Completed)
 		writer.Write([]string{
@@ -199,16 +208,21 @@ func deleteTodo(id int) {
 		}
 	}
 	fmt.Println("Todo not found")
+}
 
+func deleteAllTodos() {
+	writeTodos(nil)
 }
 
 func displayTodos(todos []Todo) {
 	for _, todo := range todos {
-		fmt.Printf("ID: %d, Title %s, Description: %s, Completed: %v, Category: %s\n", todo.ID, todo.Title, todo.Description, todo.Completed, todo.Category)
+		tags := strings.Join(todo.Tags, ", ") // Join the tags slice into a comma-separated string
+		fmt.Printf("ID: %d, Title: %s, Description: %s, Completed: %v, Category: %s, Tags: [%s]\n",
+			todo.ID, todo.Title, todo.Description, todo.Completed, todo.Category, tags)
 	}
 }
 
-func listTodos(filter string, sortBy string, category string) {
+func listTodos(filter, sortBy, category string, tags []string) {
 	todos, _ := readTodos() // Read existing todos
 
 	// Apply filter
@@ -242,6 +256,20 @@ func listTodos(filter string, sortBy string, category string) {
 			}
 		}
 		todos = categorizedTodos
+	}
+
+	// Filter by tags
+	if len(tags) > 0 {
+		var taggedTodos []Todo
+		for _, todo := range todos {
+			for _, tag := range tags {
+				if contains(todo.Tags, tag) {
+					taggedTodos = append(taggedTodos, todo)
+					break
+				}
+			}
+		}
+		todos = taggedTodos
 	}
 
 	displayTodos(todos)
@@ -311,4 +339,13 @@ func stats() {
 	}
 
 	fmt.Printf("\nMost Common Category: %s (%d todos)\n", mostCommonCategory, maxCount)
+}
+
+func contains(slice []string, item string) bool {
+	for _, sliceItem := range slice {
+		if strings.ToLower(sliceItem) == strings.ToLower(item) {
+			return true
+		}
+	}
+	return false
 }
