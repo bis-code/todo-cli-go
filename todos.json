@@ -1,13 +1,13 @@
 [
- {
-  "ID": 1,
-  "Title": "Learn JSON",
-  "Description": "Switch storage to JSON",
-  "Completed": false,
-  "Category": "Programming",
-  "Tags": [
-   "coding",
-   "json"
-  ]
- }
+  {
+    "ID": 2,
+    "Title": "Learn go modules",
+    "Description": "organize project structure",
+    "Completed": false,
+    "Category": "Programming",
+    "Tags": [
+      "go",
+      "modules"
+    ]
+  }
 ]
