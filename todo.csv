@@ -1,3 +1,6 @@
-ID,Title,Description,Completed
-1,Learn go,Build CLI app,true
-2,Buy groceries,Milk and eggs,false
+ID,Title,Description,Completed,Category
+1,Read Book,Finish 'The Go Programming Language',true,Leisure
+2,Learn Go,Build CLI app,false,Programming
+3,Buy Groceries,Milk and eggs,false,Shopping
+4,Code Review,Review pull requests,false,Programming
+5,Read Book,Finish 'The Go Programming Language',false,Leisure
