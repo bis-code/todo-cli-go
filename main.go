@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -28,6 +29,10 @@ func main() {
 	// Delete command flag
 	deleteID := deleteCmd.Int("id", 0, "ID of the todo to delete")
 
+	// List command lag
+	listFilter := listCmd.String("filter", "", "Filter todos by 'completed' or 'pending'")
+	listSort := listCmd.String("sort", "id", "Sort todos by 'id' or 'title'")
+
 	if len(os.Args) < 2 {
 		fmt.Println("expected 'add', 'list', 'update', or 'delete' subcommands")
 		os.Exit(1)
@@ -40,7 +45,7 @@ func main() {
 		addTodo(*addTitle, *addDesc)
 	case "list":
 		listCmd.Parse(os.Args[2:])
-		listTodos()
+		listTodos(*listFilter, *listSort)
 	case "update":
 		updateCmd.Parse(os.Args[2:])
 		updateTodo(*updateID, *updateTitle, *updateDesc, *updateCompleted)
@@ -153,8 +158,33 @@ func deleteTodo(id int) {
 
 }
 
-func listTodos() {
+func listTodos(filter string, sortBy string) {
 	todos, _ := readTodos() // Read existing todos
+
+	// Apply filter
+	if filter != "" {
+		var filteredTodos []Todo
+		for _, todo := range todos {
+			if (filter == "completed" && todo.Completed) || (filter == "pending" && !todo.Completed) {
+				filteredTodos = append(filteredTodos, todo)
+			}
+		}
+		todos = filteredTodos
+	}
+
+	// Apply sorting
+
+	if sortBy == "title" {
+		sort.Slice(todos, func(i, j int) bool {
+			return todos[i].Title < todos[j].Title
+		})
+	} else if sortBy == "id" {
+		sort.Slice(todos, func(i, j int) bool {
+			return todos[i].ID < todos[j].ID
+		})
+	}
+
+	// Display todos
 	for _, todo := range todos {
 		fmt.Printf("ID: %d, Title %s, Description: %s, Completed: %v\n", todo.ID, todo.Title, todo.Description, todo.Completed)
 	}
