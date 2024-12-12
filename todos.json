@@ -1,13 +1,28 @@
 [
   {
-    "ID": 2,
-    "Title": "Learn go modules",
-    "Description": "organize project structure",
-    "Completed": false,
+    "ID": 1,
+    "Title": "Learn Go Stats",
+    "Description": "Implement insights for todos",
+    "Completed": true,
     "Category": "Programming",
     "Tags": [
       "go",
-      "modules"
-    ]
+      "insights"
+    ],
+    "CreatedAt": "2024-12-12T17:45:25.926643+01:00",
+    "CompletedAt": "2024-12-12T17:45:25.941139+01:00"
+  },
+  {
+    "ID": 2,
+    "Title": "Buy Groceries",
+    "Description": "Get milk and eggs",
+    "Completed": false,
+    "Category": "Shopping",
+    "Tags": [
+      "chores",
+      "food"
+    ],
+    "CreatedAt": "2024-12-12T17:45:25.933601+01:00",
+    "CompletedAt": null
   }
 ]

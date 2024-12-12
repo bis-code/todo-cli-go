@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
 	"todo-cli/internal/storage"
 )
@@ -16,6 +17,12 @@ func Update(id int, title, desc string, completed bool) {
 			if desc != "" {
 				todos[i].Description = desc
 			}
+
+			if todo.Completed != completed && completed {
+				now := time.Now()
+				todos[i].CompletedAt = &now // Set completion timestamp
+			}
+
 			todos[i].Completed = completed
 			storage.WriteTodosToJSON(todos)
 			fmt.Println("Todo updated successfully!")
