@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -98,8 +99,9 @@ type Todo struct {
 }
 
 const filePath = "todo.csv"
+const jsonFilePath = "todos.json"
 
-func readTodos() ([]Todo, error) {
+func readTodosFromFile() ([]Todo, error) {
 	file, err := os.Open(filePath)
 
 	if err != nil {
@@ -134,7 +136,26 @@ func readTodos() ([]Todo, error) {
 	return todos, nil
 }
 
-func writeTodos(todos []Todo) error {
+func readTodosFromJSON() ([]Todo, error) {
+	file, err := os.Open(jsonFilePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []Todo{}, nil // If file doesn't exist return an empty slice
+		}
+		return nil, err
+	}
+	defer file.Close()
+
+	var todos []Todo
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&todos); err != nil {
+		return nil, err
+	}
+
+	return todos, nil
+}
+
+func writeTodosToFile(todos []Todo) error {
 	file, err := os.Create(filePath)
 	if err != nil {
 		return err
@@ -161,8 +182,21 @@ func writeTodos(todos []Todo) error {
 	return nil
 }
 
+func writeTodosToJSON(todos []Todo) error {
+	file, err := os.Create(jsonFilePath)
+
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", " ") // Pretty-print JSON for readability
+	return encoder.Encode(todos)
+}
+
 func updateTodo(id int, title, desc string, completed bool) {
-	todos, _ := readTodos()
+	todos, _ := readTodosFromJSON()
 	for i, todo := range todos {
 		if todo.ID == id {
 			// Update the fields only if new values are provided
@@ -173,7 +207,7 @@ func updateTodo(id int, title, desc string, completed bool) {
 				todos[i].Description = desc
 			}
 			todos[i].Completed = completed
-			writeTodos(todos) // Save updated todos back to the file
+			writeTodosToJSON(todos) // Save updated todos back to the file
 			fmt.Println("Todo updated successfully")
 			return
 		}
@@ -182,8 +216,8 @@ func updateTodo(id int, title, desc string, completed bool) {
 }
 
 func addTodo(title, desc, category string, tags []string) {
-	todos, _ := readTodos() // Read existing todos
-	id := len(todos) + 1    // Assign a new ID
+	todos, _ := readTodosFromJSON() // Read existing todos
+	id := len(todos) + 1            // Assign a new ID
 	todos = append(todos, Todo{
 		ID:          id,
 		Title:       title,
@@ -192,17 +226,17 @@ func addTodo(title, desc, category string, tags []string) {
 		Category:    category,
 		Tags:        tags, // Assign tags
 	})
-	writeTodos(todos) // Save the updated todos back to the file
+	writeTodosToJSON(todos) // Save the updated todos back to the file
 	fmt.Println("Todo added successfully")
 }
 
 func deleteTodo(id int) {
-	todos, _ := readTodos() // Read existing todos
+	todos, _ := readTodosFromJSON() // Read existing todos
 	for i, todo := range todos {
 		if todo.ID == id {
 			// Remove the todo by slicking
 			todos = append(todos[:i], todos[i+1:]...) // todos[:i] All elements before the index // todos[i+1:] All elements after the index
-			writeTodos(todos)                         // Save the updated list back to the file
+			writeTodosToJSON(todos)                   // Save the updated list back to the file
 			fmt.Println("Todo deleted successfully!")
 			return
 		}
@@ -211,7 +245,7 @@ func deleteTodo(id int) {
 }
 
 func deleteAllTodos() {
-	writeTodos(nil)
+	writeTodosToJSON(nil)
 }
 
 func displayTodos(todos []Todo) {
@@ -223,7 +257,7 @@ func displayTodos(todos []Todo) {
 }
 
 func listTodos(filter, sortBy, category string, tags []string) {
-	todos, _ := readTodos() // Read existing todos
+	todos, _ := readTodosFromJSON() // Read todos from JSON
 
 	// Apply filter
 	if filter != "" {
@@ -259,7 +293,7 @@ func listTodos(filter, sortBy, category string, tags []string) {
 	}
 
 	// Filter by tags
-	if len(tags) > 0 {
+	if len(tags) > 0 && tags[0] != "" {
 		var taggedTodos []Todo
 		for _, todo := range todos {
 			for _, tag := range tags {
@@ -276,7 +310,7 @@ func listTodos(filter, sortBy, category string, tags []string) {
 }
 
 func searchTodos(query string) {
-	todos, _ := readTodos() // Read existing todos
+	todos, _ := readTodosFromJSON() // Read existing todos
 
 	// Filter todos by matching query in Title or Description
 	var matchedTodos []Todo
@@ -297,7 +331,7 @@ func searchTodos(query string) {
 }
 
 func stats() {
-	todos, _ := readTodos() // Read existing todos
+	todos, _ := readTodosFromJSON() // Read existing todos
 
 	total := len(todos)
 	completed := 0
