@@ -73,22 +73,7 @@ func GetAllTodos() ([]models.Todo, error) {
 	}
 	defer rows.Close()
 
-	var todos []models.Todo
-	for rows.Next() {
-		var todo models.Todo
-		var completedAt *time.Time
-		var tags []string
-
-		err := rows.Scan(&todo.ID, &todo.Title, &todo.Description, &todo.Category, &todo.Tags, &tags, &todo.CreatedAt, &completedAt)
-		if err != nil {
-			return nil, err
-		}
-		todo.Tags = tags
-		todo.CompletedAt = completedAt
-		todos = append(todos, todo)
-	}
-
-	return todos, nil
+	return mapTodosFromRows(rows)
 }
 
 func UpdateTodo(todo models.Todo) error {
@@ -128,6 +113,45 @@ func DeleteAllTodos() error {
 	}
 
 	return nil
+}
+
+func SearchTodos(query string) ([]models.Todo, error) {
+	// SQL query with parameterized search
+	sql := `
+	SELECT id, title, description, completed, category, tags, created_at, completed_at
+	FROM todos
+	WHERE description LIKE $1 OR title LIKE $1
+	`
+
+	searchQuery := "%" + query + "%"
+
+	rows, err := conn.Query(context.Background(), sql, searchQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return mapTodosFromRows(rows)
+}
+
+func mapTodosFromRows(rows pgx.Rows) ([]models.Todo, error) {
+	var todos []models.Todo
+	for rows.Next() {
+		var todo models.Todo
+		var completedAt *time.Time
+		var tags []string
+
+		err := rows.Scan(&todo.ID, &todo.Title, &todo.Description, &todo.Category, &todo.Tags, &tags, &todo.CreatedAt, &completedAt)
+		if err != nil {
+			return nil, err
+		}
+		todo.Tags = tags
+		todo.CompletedAt = completedAt
+		todos = append(todos, todo)
+	}
+	fmt.Println(todos)
+
+	return todos, nil
 }
 
 //func GetTodoStats() (map[string]interface{}, error) {

@@ -2,28 +2,26 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
-	"todo-cli/internal/models"
-
 	"todo-cli/internal/storage"
 	"todo-cli/internal/utils"
 )
 
-// TODO change it to use database
+// TODO solve issues - not possible to search
+/**
+./todo-cli search -query="Go"
+Error:
+Connected to the database successfully!
+Failed to search todos by {3 824633935376}:
+No todos to display.
+Database connection closed.
+
+*/
 func Search(query string) {
-	todos, _ := storage.ReadTodosFromJSON()
-	var matchedTodos []models.Todo
-	for _, todo := range todos {
-		if strings.Contains(strings.ToLower(todo.Title), strings.ToLower(query)) ||
-			strings.Contains(strings.ToLower(todo.Description), strings.ToLower(query)) {
-			matchedTodos = append(matchedTodos, todo)
-		}
+	todos, err := storage.SearchTodos(query)
+
+	if err != nil {
+		fmt.Printf("Failed to search todos by %d:\n", err)
 	}
 
-	if len(matchedTodos) == 0 {
-		fmt.Println("No todos found matching the query.")
-		return
-	}
-
-	utils.DisplayTodos(matchedTodos)
+	utils.DisplayTodos(todos)
 }
