@@ -105,16 +105,16 @@ func DeleteTodoByID(id int) error {
 	return err
 }
 
-func GetTodoStats() (map[string]interface{}, error) {
-	query := `
-		SELECT
-			COUNT(*) AS total,
-			SUM(CASE WHEN completed THEN 1 ELSE 0 END) as completed,
-			SUM(CASE WHEN NOT completed THEN 1 ELSE 0 END) AS pending
-		FROM todos
-	`
-
-	var stats map[string]interface{}
-	err := conn.QueryRow(context.Background(), query).Scan(&stats["total"], &stats["completed"], &stats["pending"])
-	return stats, err
-}
+//func GetTodoStats() (map[string]interface{}, error) {
+//	query := `
+//		SELECT
+//			COUNT(*) AS total,
+//			SUM(CASE WHEN completed THEN 1 ELSE 0 END) as completed,
+//			SUM(CASE WHEN NOT completed THEN 1 ELSE 0 END) AS pending
+//		FROM todos
+//	`
+//
+//	var stats map[string]interface{}
+//	err := conn.QueryRow(context.Background(), query).Scan(&stats["total"], &stats["completed"], &stats["pending"])
+//	return stats, err
+//}
