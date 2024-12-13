@@ -97,12 +97,37 @@ func UpdateTodo(todo models.Todo) error {
 		SET title = $1, description = $2, completed = $3, category = $4, tags = $5, completed_at = $6
 		WHERE id = $7
 	`, todo.Title, todo.Description, todo.Completed, todo.Category, todo.Tags, todo.CompletedAt, todo.ID)
-	return err
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func DeleteTodoByID(id int) error {
-	_, err := conn.Exec(context.Background(), "DELETE FROM todos WHERE id = $1", id)
-	return err
+	result, err := conn.Exec(context.Background(), "DELETE FROM todos WHERE id = $1", id)
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("no todo found with ID %d", id)
+	}
+
+	return nil
+}
+
+func DeleteAllTodos() error {
+	_, err := conn.Exec(context.Background(), `DELETE from todos`)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //func GetTodoStats() (map[string]interface{}, error) {
