@@ -9,6 +9,7 @@ import (
 	"todo-cli/internal/utils"
 )
 
+// TODO change it to use database
 func List(filter, sortBy, category, tagsStr string) {
 	todos, _ := storage.ReadTodosFromJSON()
 	tags := []string{}

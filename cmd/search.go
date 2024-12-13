@@ -9,6 +9,7 @@ import (
 	"todo-cli/internal/utils"
 )
 
+// TODO change it to use database
 func Search(query string) {
 	todos, _ := storage.ReadTodosFromJSON()
 	var matchedTodos []models.Todo

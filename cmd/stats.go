@@ -7,6 +7,7 @@ import (
 	"todo-cli/internal/storage"
 )
 
+// TODO change it to use database
 func Stats() {
 	todos, _ := storage.ReadTodosFromJSON()
 	total := len(todos)

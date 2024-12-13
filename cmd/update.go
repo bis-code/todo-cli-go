@@ -7,6 +7,7 @@ import (
 	"todo-cli/internal/storage"
 )
 
+// TODO change it to use database
 func Update(id int, title, desc string, completed bool) {
 	todos, _ := storage.ReadTodosFromJSON()
 	for i, todo := range todos {

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
+	"todo-cli/internal/models"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -50,4 +52,69 @@ func RunMigrations() error {
 		fmt.Println("Migrations are already up to date.")
 	}
 	return nil
+}
+
+func AddTodo(todo models.Todo) error {
+	_, err := conn.Exec(context.Background(), `
+		INSERT iNTO todos (title, description, completed, category,tags, created_at, completed_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`, todo.Title, todo.Description, todo.Completed, todo.Category, todo.Tags, todo.CreatedAt, todo.CompletedAt)
+	return err
+}
+
+func GetAllTodos() ([]models.Todo, error) {
+	rows, err := conn.Query(context.Background(), `
+		SELECT id, title, description, completed, category, tags, created_at, completed_at
+		FROM todos
+	`)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var todos []models.Todo
+	for rows.Next() {
+		var todo models.Todo
+		var completedAt *time.Time
+		var tags []string
+
+		err := rows.Scan(&todo.ID, &todo.Title, &todo.Description, &todo.Category, &todo.Tags, &tags, &todo.CreatedAt, &completedAt)
+		if err != nil {
+			return nil, err
+		}
+		todo.Tags = tags
+		todo.CompletedAt = completedAt
+		todos = append(todos, todo)
+	}
+
+	return todos, nil
+}
+
+func UpdateTodo(todo models.Todo) error {
+	_, err := conn.Exec(context.Background(), `
+		UPDATE todos
+		SET title = $1, description = $2, completed = $3, category = $4, tags = $5, completed_at = $6
+		WHERE id = $7
+	`, todo.Title, todo.Description, todo.Completed, todo.Category, todo.Tags, todo.CompletedAt, todo.ID)
+	return err
+}
+
+func DeleteTodoByID(id int) error {
+	_, err := conn.Exec(context.Background(), "DELETE FROM todos WHERE id = $1", id)
+	return err
+}
+
+func GetTodoStats() (map[string]interface{}, error) {
+	query := `
+		SELECT
+			COUNT(*) AS total,
+			SUM(CASE WHEN completed THEN 1 ELSE 0 END) as completed,
+			SUM(CASE WHEN NOT completed THEN 1 ELSE 0 END) AS pending
+		FROM todos
+	`
+
+	var stats map[string]interface{}
+	err := conn.QueryRow(context.Background(), query).Scan(&stats["total"], &stats["completed"], &stats["pending"])
+	return stats, err
 }

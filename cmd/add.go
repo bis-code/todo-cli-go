@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"todo-cli/internal/models"
@@ -10,14 +9,11 @@ import (
 )
 
 func Add(title, desc, category, tagsStr string) {
-	todos, _ := storage.ReadTodosFromJSON()
-	id := len(todos) + 1
-	tags := []string{}
+	var tags []string
 	if tagsStr != "" {
-		tags = strings.Split(tagsStr, ",")
+		tags = append(tags, tagsStr)
 	}
 	todo := models.Todo{
-		ID:          id,
 		Title:       title,
 		Description: desc,
 		Completed:   false,
@@ -26,7 +22,11 @@ func Add(title, desc, category, tagsStr string) {
 		CreatedAt:   time.Now(),
 		CompletedAt: nil,
 	}
-	todos = append(todos, todo)
-	storage.WriteTodosToJSON(todos)
+
+	err := storage.AddTodo(todo)
+	if err != nil {
+		fmt.Println("Error adding todo:", err)
+		return
+	}
 	fmt.Println("Todo added successfully!")
 }

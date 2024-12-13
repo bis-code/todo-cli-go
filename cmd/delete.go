@@ -7,6 +7,7 @@ import (
 	"todo-cli/internal/storage"
 )
 
+// TODO change it to use database
 func Delete(id int, deleteAll bool) {
 	if deleteAll {
 		storage.WriteTodosToJSON([]models.Todo{})
